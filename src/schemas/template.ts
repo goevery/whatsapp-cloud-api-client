@@ -1,5 +1,48 @@
 import z from "zod";
 
+export const whatsAppTemplateCategorySchema = z.enum([
+  "UTILITY",
+  "MARKETING",
+  "AUTHENTICATION",
+]);
+
+export type WhatsAppTemplateCategory = z.infer<
+  typeof whatsAppTemplateCategorySchema
+>;
+
+export const whatsAppTemplateStatusSchema = z.enum([
+  "APPROVED",
+  "IN_APPEAL",
+  "PENDING",
+  "REJECTED",
+  "PENDING_DELETION",
+  "DELETED",
+  "DISABLED",
+  "PAUSED",
+  "LIMIT_EXCEEDED",
+  "ARCHIVED",
+]);
+
+export const whatsAppTemplateParameterFormatSchema = z.enum([
+  "NAMED",
+  "POSITIONAL",
+]);
+
+export type WhatsAppTemplateParameterFormat = z.infer<
+  typeof whatsAppTemplateParameterFormatSchema
+>;
+
+export const whatsAppTemplateQualityScoreSchema = z.enum([
+  "GREEN",
+  "YELLOW",
+  "RED",
+  "UNKNOWN",
+]);
+
+export type WhatsAppTemplateQualityScore = z.infer<
+  typeof whatsAppTemplateQualityScoreSchema
+>;
+
 export const whatsAppTemplatedNamedParamSchema = z.object({
   param_name: z.string(),
   example: z.string(),
@@ -7,6 +50,46 @@ export const whatsAppTemplatedNamedParamSchema = z.object({
 
 export type WhatsAppTemplateNamedParam = z.infer<
   typeof whatsAppTemplatedNamedParamSchema
+>;
+
+export const whatsAppTemplateHeaderNoParamsComponentSchema = z.object({
+  type: z.literal("HEADER"),
+  format: z.literal("TEXT"),
+  text: z.string(),
+});
+
+export const whatsAppTemplateHeaderNamedParamsComponentSchema = z.object({
+  type: z.literal("HEADER"),
+  format: z.literal("TEXT"),
+  text: z.string(),
+  example: z.object({
+    header_text_named_params: z.array(whatsAppTemplatedNamedParamSchema),
+  }),
+});
+
+export const whatsAppTemplateHeaderPositionalParamsComponentSchema = z.object({
+  type: z.literal("HEADER"),
+  format: z.literal("TEXT"),
+  text: z.string(),
+  example: z.object({
+    header_text: z.array(z.string()),
+  }),
+});
+
+export const whatsAppTemplateHeaderLocationComponentSchema = z.object({
+  type: z.literal("HEADER"),
+  format: z.literal("LOCATION"),
+});
+
+export const whatsAppTemplateHeaderComponentSchema = z.union([
+  whatsAppTemplateHeaderNoParamsComponentSchema,
+  whatsAppTemplateHeaderNamedParamsComponentSchema,
+  whatsAppTemplateHeaderPositionalParamsComponentSchema,
+  whatsAppTemplateHeaderLocationComponentSchema,
+]);
+
+export type WhatsAppTemplateHeaderComponent = z.infer<
+  typeof whatsAppTemplateHeaderComponentSchema
 >;
 
 export const whatsAppTemplateBodyNoParamsComponentSchema = z.object({
@@ -38,46 +121,6 @@ export const whatsAppTemplateBodyComponentSchema = z.union([
 
 export type WhatsAppTemplateBodyComponent = z.infer<
   typeof whatsAppTemplateBodyComponentSchema
->;
-
-export const whatsAppTemplateHeaderNoParamsComponentSchema = z.object({
-  type: z.literal("HEADER"),
-  format: z.literal("TEXT"),
-  text: z.string(),
-});
-
-export const whatsAppTemplateHeaderLocationComponentSchema = z.object({
-  type: z.literal("HEADER"),
-  format: z.literal("LOCATION"),
-});
-
-export const whatsAppTemplateHeaderNamedParamsComponentSchema = z.object({
-  type: z.literal("HEADER"),
-  format: z.literal("TEXT"),
-  text: z.string(),
-  example: z.object({
-    header_text_named_params: z.array(whatsAppTemplatedNamedParamSchema),
-  }),
-});
-
-export const whatsAppTemplateHeaderPositionalParamsComponentSchema = z.object({
-  type: z.literal("HEADER"),
-  format: z.literal("TEXT"),
-  text: z.string(),
-  example: z.object({
-    header_text: z.array(z.string()),
-  }),
-});
-
-export const whatsAppTemplateHeaderComponentSchema = z.union([
-  whatsAppTemplateHeaderNoParamsComponentSchema,
-  whatsAppTemplateHeaderNamedParamsComponentSchema,
-  whatsAppTemplateHeaderPositionalParamsComponentSchema,
-  whatsAppTemplateHeaderLocationComponentSchema,
-]);
-
-export type WhatsAppTemplateHeaderComponent = z.infer<
-  typeof whatsAppTemplateHeaderComponentSchema
 >;
 
 export const whatsAppTemplateFooterComponentSchema = z.object({
@@ -118,38 +161,6 @@ export type WhatsAppTemplateComponent = z.infer<
   typeof whatsAppTemplateComponentSchema
 >;
 
-export const whatsAppTemplateCategorySchema = z.enum([
-  "UTILITY",
-  "MARKETING",
-  "AUTHENTICATION",
-]);
-
-export type WhatsAppTemplateCategory = z.infer<
-  typeof whatsAppTemplateCategorySchema
->;
-
-export const whatsAppTemplateParameterFormatSchema = z.enum([
-  "NAMED",
-  "POSITIONAL",
-]);
-
-export type WhatsAppTemplateParameterFormat = z.infer<
-  typeof whatsAppTemplateParameterFormatSchema
->;
-
-export const whatsAppTemplateStatusSchema = z.enum([
-  "APPROVED",
-  "IN_APPEAL",
-  "PENDING",
-  "REJECTED",
-  "PENDING_DELETION",
-  "DELETED",
-  "DISABLED",
-  "PAUSED",
-  "LIMIT_EXCEEDED",
-  "ARCHIVED",
-]);
-
 export const whatsAppTemplateSchema = z.object({
   id: z.string(),
   name: z.string(),
@@ -176,17 +187,6 @@ export const createWhatsAppTemplateResponseSchema = z.object({
   status: whatsAppTemplateStatusSchema,
   category: whatsAppTemplateCategorySchema,
 });
-
-export const whatsAppTemplateQualityScoreSchema = z.enum([
-  "GREEN",
-  "YELLOW",
-  "RED",
-  "UNKNOWN",
-]);
-
-export type WhatsAppTemplateQualityScore = z.infer<
-  typeof whatsAppTemplateQualityScoreSchema
->;
 
 export const listWhatsAppTemplatesRequestSchema = z.object({
   category: whatsAppTemplateCategorySchema.optional(),
