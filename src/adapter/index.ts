@@ -15,11 +15,11 @@ export type WhatsAppHttpResponse = {
   body: string;
 };
 
-export interface WhatsAppHttpAdapter {
+export type WhatsAppHttpAdapter = {
   get(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse>;
   post(request: WhatsAppHttpPayloadRequest): Promise<WhatsAppHttpResponse>;
   delete(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse>;
-}
+};
 
 export class FetchWhatsAppHttpAdapter implements WhatsAppHttpAdapter {
   async get(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse> {

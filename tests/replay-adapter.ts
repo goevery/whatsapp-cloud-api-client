@@ -1,12 +1,29 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
-import {
-  FetchWhatsAppHttpAdapter,
+import z from "zod";
+import { FetchWhatsAppHttpAdapter } from "../src/adapter";
+import type {
   WhatsAppHttpRequest,
   WhatsAppHttpPayloadRequest,
   WhatsAppHttpResponse,
 } from "../src/adapter";
+
+const cachedDataSchema = z.object({
+  request: z.object({
+    method: z.string(),
+    path: z.string(),
+    queryParams: z.record(z.string(), z.string()).optional(),
+    version: z.string(),
+    wabaId: z.string(),
+    payload: z.looseObject({}).optional(),
+  }),
+  response: z.object({
+    ok: z.boolean(),
+    body: z.string(),
+  }),
+  cachedAt: z.string(),
+});
 
 export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
   private cacheDir: string;
@@ -117,11 +134,11 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     try {
       const content = fs.readFileSync(filePath, "utf-8");
-      const cached = JSON.parse(content);
+      const parsed = cachedDataSchema.parse(JSON.parse(content));
 
       return {
-        ok: cached.response.ok,
-        body: cached.response.body,
+        ok: parsed.response.ok,
+        body: parsed.response.body,
       };
     } catch (error) {
       console.warn(`Failed to read cache file ${filePath}:`, error);

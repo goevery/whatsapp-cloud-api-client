@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vitest";
-import { WhatsAppClient, WhatsAppRequest } from "../src/index";
-import {
+import { WhatsAppClient } from "../src/index";
+import type { WhatsAppRequest } from "../src/index";
+import type {
   CreateWhatsAppTemplateRequest,
   ListWhatsAppTemplatesRequest,
   DeleteWhatsAppTemplateRequest,
@@ -8,7 +9,7 @@ import {
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
 
-const TEMPLATES_VERSION = "_v11";
+const TEMPLATES_VERSION = "_v14";
 
 describe("Template Tests", () => {
   test("should create a simple template without parameters", async () => {
@@ -16,7 +17,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `welcome_message${TEMPLATES_VERSION}`,
@@ -44,7 +45,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `complete_template_no_params${TEMPLATES_VERSION}`,
@@ -94,7 +95,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `seasonal_promotion${TEMPLATES_VERSION}`,
@@ -150,12 +151,12 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `order_confirmation${TEMPLATES_VERSION}`,
         language: "en_US",
-        category: "UTILITY",
+        category: "MARKETING",
         parameter_format: "NAMED",
         components: [
           {
@@ -183,7 +184,7 @@ describe("Template Tests", () => {
     expect(result).toBeDefined();
     expect(typeof result.id).toBe("string");
     expect(result.status).toBe("PENDING");
-    expect(result.category).toBe("UTILITY");
+    expect(result.category).toBe("MARKETING");
   }, 25000);
 
   test("should create a template with header and footer", async () => {
@@ -191,12 +192,12 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `order_delivery_update${TEMPLATES_VERSION}`,
         language: "en_US",
-        category: "UTILITY",
+        category: "MARKETING",
         components: [
           {
             type: "HEADER",
@@ -231,7 +232,7 @@ describe("Template Tests", () => {
     expect(result).toBeDefined();
     expect(typeof result.id).toBe("string");
     expect(result.status).toBe("PENDING");
-    expect(result.category).toBe("UTILITY");
+    expect(result.category).toBe("MARKETING");
   }, 25000);
 
   test("should list templates", async () => {
@@ -239,7 +240,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {},
     } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
@@ -270,7 +271,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: "order_confirmation",
@@ -293,7 +294,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         category: "UTILITY",
@@ -316,7 +317,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         status: "APPROVED",
@@ -339,7 +340,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         category: "MARKETING",
@@ -366,7 +367,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const request = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: "nonexistent_template_name_xyz",
@@ -386,7 +387,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const createRequest = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `delete_test_template${TEMPLATES_VERSION}`,
@@ -406,7 +407,7 @@ describe("Template Tests", () => {
     expect(typeof createResult.id).toBe("string");
 
     const deleteRequest = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `delete_test_template${TEMPLATES_VERSION}`,
@@ -424,7 +425,7 @@ describe("Template Tests", () => {
     const client = new WhatsAppClient(adapter);
 
     const createRequest = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `delete_test_with_id${TEMPLATES_VERSION}`,
@@ -444,7 +445,7 @@ describe("Template Tests", () => {
     expect(typeof createResult.id).toBe("string");
 
     const deleteRequest = {
-      wabaId: "1606335326722023",
+      wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
         name: `delete_test_with_id${TEMPLATES_VERSION}`,
