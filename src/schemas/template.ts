@@ -1,4 +1,5 @@
 import z from "zod";
+import { pagingSchema } from "./paging";
 
 export const whatsAppTemplateCategorySchema = z.enum([
   "UTILITY",
@@ -242,14 +243,7 @@ export type ListWhatsAppTemplatesRequest = z.infer<
 
 export const listWhatsAppTemplatesResponseSchema = z.object({
   data: z.array(whatsAppTemplateSchema),
-  paging: z
-    .object({
-      cursors: z.object({
-        before: z.string(),
-        after: z.string(),
-      }),
-    })
-    .optional(),
+  paging: pagingSchema.optional(),
 });
 
 export type ListWhatsAppTemplatesResponse = z.infer<
