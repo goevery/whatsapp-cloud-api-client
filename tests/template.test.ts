@@ -9,7 +9,7 @@ import type {
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
 
-const TEMPLATES_VERSION = "_v15";
+const TEMPLATES_VERSION = "_v16";
 
 describe("Template Tests", () => {
   test("should create a simple template without parameters", async () => {

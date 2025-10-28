@@ -53,9 +53,8 @@ export class WhatsAppClient {
     request: WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>,
   ) {
     const { ok, body } = await this.http.post({
-      path: "/message_templates",
+      path: `/${request.wabaId}/message_templates`,
       version: this.version,
-      wabaId: request.wabaId,
       accessToken: request.accessToken,
       payload: request.payload,
     });
@@ -71,9 +70,8 @@ export class WhatsAppClient {
     request: WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>,
   ) {
     const { ok, body } = await this.http.get({
-      path: "/message_templates",
+      path: `/${request.wabaId}/message_templates`,
       version: this.version,
-      wabaId: request.wabaId,
       accessToken: request.accessToken,
       queryParams: request.payload,
     });
@@ -89,9 +87,8 @@ export class WhatsAppClient {
     request: WhatsAppTemplateRequest<DeleteWhatsAppTemplateRequest>,
   ) {
     const { ok, body } = await this.http.delete({
-      path: "/message_templates",
+      path: `/${request.wabaId}/message_templates`,
       version: this.version,
-      wabaId: request.wabaId,
       accessToken: request.accessToken,
       queryParams: request.payload,
     });
@@ -109,9 +106,8 @@ export class WhatsAppClient {
     const validatedPayload = sendMessageRequestSchema.parse(request.payload);
 
     const { ok, body } = await this.http.post({
-      path: "/messages",
+      path: `/${request.phoneNumberId}/messages`,
       version: this.version,
-      wabaId: request.phoneNumberId,
       accessToken: request.accessToken,
       payload: validatedPayload,
     });
@@ -134,9 +130,8 @@ export class WhatsAppClient {
     formData.append("file", request.file);
 
     const { ok, body } = await this.http.postForm({
-      path: "/media",
+      path: `/${request.phoneNumberId}/media`,
       version: this.version,
-      wabaId: request.phoneNumberId,
       accessToken: request.accessToken,
       formData,
     });
@@ -158,9 +153,8 @@ export class WhatsAppClient {
       : undefined;
 
     const { ok, body } = await this.http.get({
-      path: "",
+      path: `/${mediaId}`,
       version: this.version,
-      wabaId: mediaId,
       accessToken,
       queryParams: validatedQueryParams,
     });

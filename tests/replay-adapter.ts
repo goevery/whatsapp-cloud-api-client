@@ -1,6 +1,8 @@
 import * as fs from "fs";
 import * as path from "path";
 import * as crypto from "crypto";
+import { pipeline } from "stream/promises";
+import { Readable } from "stream";
 import z from "zod";
 import { FetchWhatsAppHttpAdapter } from "../src/adapter";
 import type {
@@ -18,13 +20,22 @@ const cachedDataSchema = z.object({
     path: z.string(),
     queryParams: z.record(z.string(), z.string()).optional(),
     version: z.string(),
-    wabaId: z.string(),
     payload: z.looseObject({}).optional(),
   }),
   response: z.object({
     ok: z.boolean(),
     body: z.string(),
   }),
+  cachedAt: z.string(),
+});
+
+const cachedDownloadMetaSchema = z.object({
+  request: z.object({
+    method: z.literal("DOWNLOAD"),
+    url: z.string(),
+  }),
+  ok: z.boolean(),
+  contentType: z.string(),
   cachedAt: z.string(),
 });
 
@@ -47,7 +58,9 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     const response = await super.get(request);
 
-    this.writeToCache(cacheKey, response, request, "GET", request.path);
+    if (response.ok) {
+      this.writeToCache(cacheKey, response, request, "GET", request.path);
+    }
 
     return response;
   }
@@ -64,7 +77,9 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     const response = await super.post(request);
 
-    this.writeToCache(cacheKey, response, request, "POST", request.path);
+    if (response.ok) {
+      this.writeToCache(cacheKey, response, request, "POST", request.path);
+    }
 
     return response;
   }
@@ -85,7 +100,9 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     const response = await super.postForm(request);
 
-    this.writeToCache(cacheKey, response, request, "POST_FORM", request.path);
+    if (response.ok) {
+      this.writeToCache(cacheKey, response, request, "POST_FORM", request.path);
+    }
 
     return response;
   }
@@ -100,7 +117,9 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     const response = await super.delete(request);
 
-    this.writeToCache(cacheKey, response, request, "DELETE", request.path);
+    if (response.ok) {
+      this.writeToCache(cacheKey, response, request, "DELETE", request.path);
+    }
 
     return response;
   }
@@ -108,7 +127,20 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
   async download(
     request: WhatsAppHttpDownloadRequest,
   ): Promise<WhatsAppHttpDownloadResponse> {
-    return await super.download(request);
+    const cacheKey = this.generateDownloadCacheKey(request);
+    const cachedResponse = this.readDownloadFromCache(cacheKey);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await super.download(request);
+
+    if (response.ok && response.data) {
+      await this.writeDownloadToCache(cacheKey, response, request);
+    }
+
+    return response;
   }
 
   private generateCacheKey(
@@ -123,7 +155,6 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
       path: request.path,
       queryParams: request.queryParams,
       version: request.version,
-      wabaId: request.wabaId,
       payload: "payload" in request ? request.payload : undefined,
       formData:
         "formData" in request
@@ -150,6 +181,29 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
       this.cacheDir,
       `${method}_${sanitizedPath}_${cacheKey}.json`,
     );
+  }
+
+  private generateDownloadCacheKey(
+    request: WhatsAppHttpDownloadRequest,
+  ): string {
+    const requestData = {
+      url: request.url,
+    };
+
+    const hash = crypto
+      .createHash("sha256")
+      .update(JSON.stringify(requestData))
+      .digest("hex");
+
+    return hash;
+  }
+
+  private getDownloadCacheFilePath(cacheKey: string): string {
+    return path.join(this.cacheDir, `DOWNLOAD_${cacheKey}.bin`);
+  }
+
+  private getDownloadCacheMetaFilePath(cacheKey: string): string {
+    return path.join(this.cacheDir, `DOWNLOAD_${cacheKey}.meta.json`);
   }
 
   private ensureCacheDirExists(): void {
@@ -202,7 +256,6 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
           path: request.path,
           queryParams: request.queryParams,
           version: request.version,
-          wabaId: request.wabaId,
           payload: "payload" in request ? request.payload : undefined,
           formData:
             "formData" in request
@@ -245,6 +298,77 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
+    }
+  }
+
+  private readDownloadFromCache(
+    cacheKey: string,
+  ): WhatsAppHttpDownloadResponse | null {
+    const binFilePath = this.getDownloadCacheFilePath(cacheKey);
+    const metaFilePath = this.getDownloadCacheMetaFilePath(cacheKey);
+
+    if (!fs.existsSync(binFilePath) || !fs.existsSync(metaFilePath)) {
+      return null;
+    }
+
+    try {
+      const buffer = fs.readFileSync(binFilePath);
+      const metaContent = fs.readFileSync(metaFilePath, "utf-8");
+      const meta = cachedDownloadMetaSchema.parse(JSON.parse(metaContent));
+
+      const stream = new ReadableStream({
+        start(controller) {
+          controller.enqueue(new Uint8Array(buffer));
+          controller.close();
+        },
+      });
+
+      return {
+        ok: meta.ok,
+        data: stream,
+        contentType: meta.contentType,
+      };
+    } catch (error) {
+      console.warn(
+        `Failed to read download cache files ${binFilePath}:`,
+        error,
+      );
+      return null;
+    }
+  }
+
+  private async writeDownloadToCache(
+    cacheKey: string,
+    response: WhatsAppHttpDownloadResponse,
+    request: WhatsAppHttpDownloadRequest,
+  ): Promise<void> {
+    const binFilePath = this.getDownloadCacheFilePath(cacheKey);
+    const metaFilePath = this.getDownloadCacheMetaFilePath(cacheKey);
+
+    try {
+      if (!response.data) {
+        return;
+      }
+
+      const readable = Readable.fromWeb(response.data);
+
+      await pipeline(readable, fs.createWriteStream(binFilePath));
+
+      const meta = {
+        request: {
+          method: "DOWNLOAD",
+          url: request.url,
+        },
+        ok: response.ok,
+        contentType: response.contentType,
+        cachedAt: new Date().toISOString(),
+      };
+      fs.writeFileSync(metaFilePath, JSON.stringify(meta, null, 2), "utf-8");
+    } catch (error) {
+      console.warn(
+        `Failed to write download cache files ${binFilePath}:`,
+        error,
+      );
     }
   }
 }
