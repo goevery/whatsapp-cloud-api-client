@@ -250,14 +250,10 @@ export type ListWhatsAppTemplatesResponse = z.infer<
   typeof listWhatsAppTemplatesResponseSchema
 >;
 
-export const deleteWhatsAppTemplateRequestSchema = z.union([
-  z.object({
-    name: z.string(),
-  }),
-  z.object({
-    hsm_id: z.string(),
-  }),
-]);
+export const deleteWhatsAppTemplateRequestSchema = z.object({
+  name: z.string(),
+  hsm_id: z.string().optional(),
+});
 
 export type DeleteWhatsAppTemplateRequest = z.infer<
   typeof deleteWhatsAppTemplateRequestSchema

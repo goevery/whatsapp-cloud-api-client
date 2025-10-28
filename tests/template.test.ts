@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 import { WhatsAppClient } from "../src/index";
-import type { WhatsAppRequest } from "../src/index";
+import type { WhatsAppTemplateRequest } from "../src/index";
 import type {
   CreateWhatsAppTemplateRequest,
   ListWhatsAppTemplatesRequest,
@@ -30,7 +30,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const result = await client.createTemplate(request);
 
@@ -80,7 +80,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const result = await client.createTemplate(request);
 
@@ -136,7 +136,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const result = await client.createTemplate(request);
 
@@ -177,7 +177,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const result = await client.createTemplate(request);
 
@@ -225,7 +225,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const result = await client.createTemplate(request);
 
@@ -243,7 +243,7 @@ describe("Template Tests", () => {
       wabaId: loadRequiredEnvVar("WHATSAPP_WABA_ID"),
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {},
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -276,7 +276,7 @@ describe("Template Tests", () => {
       payload: {
         name: "order_confirmation",
       },
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -299,7 +299,7 @@ describe("Template Tests", () => {
       payload: {
         category: "UTILITY",
       },
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -322,7 +322,7 @@ describe("Template Tests", () => {
       payload: {
         status: "APPROVED",
       },
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -347,7 +347,7 @@ describe("Template Tests", () => {
         status: "APPROVED",
         language: "en",
       },
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -372,7 +372,7 @@ describe("Template Tests", () => {
       payload: {
         name: "nonexistent_template_name_xyz",
       },
-    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+    } satisfies WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>;
 
     const result = await client.listTemplates(request);
 
@@ -400,7 +400,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const createResult = await client.createTemplate(createRequest);
     expect(createResult).toBeDefined();
@@ -412,7 +412,7 @@ describe("Template Tests", () => {
       payload: {
         name: `delete_test_template${TEMPLATES_VERSION}`,
       },
-    } satisfies WhatsAppRequest<DeleteWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<DeleteWhatsAppTemplateRequest>;
 
     const result = await client.deleteTemplate(deleteRequest);
 
@@ -438,7 +438,7 @@ describe("Template Tests", () => {
           },
         ],
       },
-    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>;
 
     const createResult = await client.createTemplate(createRequest);
     expect(createResult).toBeDefined();
@@ -451,7 +451,7 @@ describe("Template Tests", () => {
         name: `delete_test_with_id${TEMPLATES_VERSION}`,
         hsm_id: createResult.id,
       },
-    } satisfies WhatsAppRequest<DeleteWhatsAppTemplateRequest>;
+    } satisfies WhatsAppTemplateRequest<DeleteWhatsAppTemplateRequest>;
 
     const result = await client.deleteTemplate(deleteRequest);
 

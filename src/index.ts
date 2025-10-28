@@ -8,7 +8,7 @@ import {
   type DeleteWhatsAppTemplateRequest,
 } from "./schemas/template";
 
-export type WhatsAppRequest<T> = {
+export type WhatsAppTemplateRequest<T> = {
   wabaId: string;
   accessToken: string;
   payload: T;
@@ -24,7 +24,7 @@ export class WhatsAppClient {
   }
 
   public async createTemplate(
-    request: WhatsAppRequest<CreateWhatsAppTemplateRequest>,
+    request: WhatsAppTemplateRequest<CreateWhatsAppTemplateRequest>,
   ) {
     const { ok, body } = await this.http.post({
       path: "/message_templates",
@@ -42,7 +42,7 @@ export class WhatsAppClient {
   }
 
   public async listTemplates(
-    request: WhatsAppRequest<ListWhatsAppTemplatesRequest>,
+    request: WhatsAppTemplateRequest<ListWhatsAppTemplatesRequest>,
   ) {
     const { ok, body } = await this.http.get({
       path: "/message_templates",
@@ -60,7 +60,7 @@ export class WhatsAppClient {
   }
 
   public async deleteTemplate(
-    request: WhatsAppRequest<DeleteWhatsAppTemplateRequest>,
+    request: WhatsAppTemplateRequest<DeleteWhatsAppTemplateRequest>,
   ) {
     const { ok, body } = await this.http.delete({
       path: "/message_templates",
