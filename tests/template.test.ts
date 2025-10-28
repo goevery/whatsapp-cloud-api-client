@@ -5,7 +5,7 @@ import type {
   CreateWhatsAppTemplateRequest,
   ListWhatsAppTemplatesRequest,
   DeleteWhatsAppTemplateRequest,
-} from "../src/schemas/template";
+} from "../src/schemas";
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
 

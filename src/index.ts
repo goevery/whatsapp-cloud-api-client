@@ -6,13 +6,11 @@ import {
   type CreateWhatsAppTemplateRequest,
   type ListWhatsAppTemplatesRequest,
   type DeleteWhatsAppTemplateRequest,
-} from "./schemas/template";
-import {
   sendMessageRequestSchema,
   sendMessageResponseSchema,
   type SendMessageRequest,
   type SendMessageResponse,
-} from "./schemas/message";
+} from "./schemas";
 
 export type WhatsAppTemplateRequest<T> = {
   wabaId: string;
