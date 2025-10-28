@@ -37,9 +37,9 @@
     "@types/node": "^24.9.1",
     "bumpp": "^10.3.1",
     "prettier": "^3.6.2",
-    "tsdown": "^0.15.9",
+    "tsdown": "^0.15.11",
     "typescript": "^5.9.3",
-    "vitest": "^4.0.1"
+    "vitest": "^4.0.4"
   },
   "dependencies": {
     "zod": "^4.1.12"

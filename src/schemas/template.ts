@@ -113,10 +113,16 @@ export const whatsAppTemplateBodyPositionalParamsComponentSchema = z.object({
   }),
 });
 
+export const whatsAppTemplateBodyAuthComponentSchema = z.object({
+  type: z.literal("BODY"),
+  add_security_recommendation: z.boolean().optional(),
+});
+
 export const whatsAppTemplateBodyComponentSchema = z.union([
   whatsAppTemplateBodyNoParamsComponentSchema,
   whatsAppTemplateBodyNamedParamsComponentSchema,
   whatsAppTemplateBodyPositionalParamsComponentSchema,
+  whatsAppTemplateBodyAuthComponentSchema,
 ]);
 
 export type WhatsAppTemplateBodyComponent = z.infer<
@@ -126,6 +132,11 @@ export type WhatsAppTemplateBodyComponent = z.infer<
 export const whatsAppTemplateFooterComponentSchema = z.object({
   type: z.literal("FOOTER"),
   text: z.string(),
+});
+
+export const whatsAppTemplateFooterAuthComponentSchema = z.object({
+  type: z.literal("FOOTER"),
+  code_expiration_minutes: z.number().min(1).max(90),
 });
 
 export type WhatsAppTemplateFooterComponent = z.infer<
@@ -141,19 +152,46 @@ export type WhatsAppTemplateQuickReplyButton = z.infer<
   typeof whatsAppTemplateQuickReplyButtonSchema
 >;
 
+export const whatsAppTemplateOTPButtonSchema = z.object({
+  type: z.literal("OTP"),
+  otp_type: z.enum(["COPY_CODE", "ONE_TAP", "ZERO_TAP"]),
+  supported_apps: z
+    .array(
+      z.object({
+        package_name: z.string(),
+        signature_hash: z.string(),
+      }),
+    )
+    .optional(),
+});
+
+export type WhatsAppTemplateOTPButton = z.infer<
+  typeof whatsAppTemplateOTPButtonSchema
+>;
+
+export const whatsAppTemplateButtonSchema = z.union([
+  whatsAppTemplateQuickReplyButtonSchema,
+  whatsAppTemplateOTPButtonSchema,
+]);
+
 export const whatsAppTemplateButtonsComponentSchema = z.object({
   type: z.literal("BUTTONS"),
-  buttons: z.array(whatsAppTemplateQuickReplyButtonSchema),
+  buttons: z.array(whatsAppTemplateButtonSchema),
 });
 
 export type WhatsAppTemplateButtonsComponent = z.infer<
   typeof whatsAppTemplateButtonsComponentSchema
 >;
 
+export const whatsAppTemplateFooterUnionSchema = z.union([
+  whatsAppTemplateFooterComponentSchema,
+  whatsAppTemplateFooterAuthComponentSchema,
+]);
+
 export const whatsAppTemplateComponentSchema = z.union([
   whatsAppTemplateBodyComponentSchema,
   whatsAppTemplateHeaderComponentSchema,
-  whatsAppTemplateFooterComponentSchema,
+  whatsAppTemplateFooterUnionSchema,
   whatsAppTemplateButtonsComponentSchema,
 ]);
 
@@ -216,4 +254,25 @@ export const listWhatsAppTemplatesResponseSchema = z.object({
 
 export type ListWhatsAppTemplatesResponse = z.infer<
   typeof listWhatsAppTemplatesResponseSchema
+>;
+
+export const deleteWhatsAppTemplateRequestSchema = z.union([
+  z.object({
+    name: z.string(),
+  }),
+  z.object({
+    hsm_id: z.string(),
+  }),
+]);
+
+export type DeleteWhatsAppTemplateRequest = z.infer<
+  typeof deleteWhatsAppTemplateRequestSchema
+>;
+
+export const deleteWhatsAppTemplateResponseSchema = z.object({
+  success: z.boolean(),
+});
+
+export type DeleteWhatsAppTemplateResponse = z.infer<
+  typeof deleteWhatsAppTemplateResponseSchema
 >;

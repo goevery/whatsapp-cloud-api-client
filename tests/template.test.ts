@@ -3,9 +3,12 @@ import { WhatsAppClient, WhatsAppRequest } from "../src/index";
 import {
   CreateWhatsAppTemplateRequest,
   ListWhatsAppTemplatesRequest,
+  DeleteWhatsAppTemplateRequest,
 } from "../src/schemas/template";
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
+
+const TEMPLATES_VERSION = "_v11";
 
 describe("Template Tests", () => {
   test("should create a template with named parameters", async () => {
@@ -16,7 +19,7 @@ describe("Template Tests", () => {
       wabaId: "1606335326722023",
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
-        name: "order_confirmation_v3",
+        name: `order_confirmation${TEMPLATES_VERSION}`,
         language: "en_US",
         category: "UTILITY",
         parameter_format: "NAMED",
@@ -57,7 +60,7 @@ describe("Template Tests", () => {
       wabaId: "1606335326722023",
       accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
       payload: {
-        name: "seasonal_promotion",
+        name: `seasonal_promotion${TEMPLATES_VERSION}`,
         language: "en",
         category: "MARKETING",
         components: [
@@ -134,5 +137,274 @@ describe("Template Tests", () => {
       expect(result.paging.cursors.before).toBeDefined();
       expect(result.paging.cursors.after).toBeDefined();
     }
+  }, 25000);
+
+  test("should list templates with category filter", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        category: "UTILITY",
+      },
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+
+    result.data.forEach((template) => {
+      expect(template.category).toBe("UTILITY");
+    });
+  }, 25000);
+
+  test("should list templates with status filter", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        status: "APPROVED",
+      },
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+
+    result.data.forEach((template) => {
+      expect(template.status).toBe("APPROVED");
+    });
+  }, 25000);
+
+  test("should list templates with name filter", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: "order_confirmation",
+      },
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+
+    result.data.forEach((template) => {
+      expect(template.name).toContain("order_confirmation");
+    });
+  }, 25000);
+
+  test("should create a template with header and footer", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `order_delivery_update${TEMPLATES_VERSION}`,
+        language: "en_US",
+        category: "UTILITY",
+        components: [
+          {
+            type: "HEADER",
+            format: "LOCATION",
+          },
+          {
+            type: "BODY",
+            text: "Good news {{1}}! Your order #{{2}} is on its way to the location above. Thank you for your order!",
+            example: {
+              body_text: [["Mark", "566701"]],
+            },
+          },
+          {
+            type: "FOOTER",
+            text: "To stop receiving delivery updates, tap the button below.",
+          },
+          {
+            type: "BUTTONS",
+            buttons: [
+              {
+                type: "QUICK_REPLY",
+                text: "Stop Delivery Updates",
+              },
+            ],
+          },
+        ],
+      },
+    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+
+    const result = await client.createTemplate(request);
+
+    expect(result).toBeDefined();
+    expect(typeof result.id).toBe("string");
+    expect(result.status).toBe("PENDING");
+    expect(result.category).toBe("UTILITY");
+  }, 25000);
+
+  test("should create a simple template without parameters", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `welcome_message${TEMPLATES_VERSION}`,
+        language: "en",
+        category: "MARKETING",
+        components: [
+          {
+            type: "BODY",
+            text: "Welcome to our service! We're glad to have you here.",
+          },
+        ],
+      },
+    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+
+    const result = await client.createTemplate(request);
+
+    expect(result).toBeDefined();
+    expect(typeof result.id).toBe("string");
+    expect(result.status).toBe("PENDING");
+    expect(result.category).toBe("MARKETING");
+  }, 25000);
+
+  test("should delete a template by name", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const createRequest = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `delete_test_template${TEMPLATES_VERSION}`,
+        language: "en",
+        category: "UTILITY",
+        components: [
+          {
+            type: "BODY",
+            text: "This is a test template that will be deleted.",
+          },
+        ],
+      },
+    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+
+    const createResult = await client.createTemplate(createRequest);
+    expect(createResult).toBeDefined();
+    expect(typeof createResult.id).toBe("string");
+
+    const deleteRequest = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `delete_test_template${TEMPLATES_VERSION}`,
+      },
+    } satisfies WhatsAppRequest<DeleteWhatsAppTemplateRequest>;
+
+    const result = await client.deleteTemplate(deleteRequest);
+
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+  }, 25000);
+
+  test("should delete a template by name and hsm_id", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const createRequest = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `delete_test_with_id${TEMPLATES_VERSION}`,
+        language: "en",
+        category: "UTILITY",
+        components: [
+          {
+            type: "BODY",
+            text: "This is another test template that will be deleted with hsm_id.",
+          },
+        ],
+      },
+    } satisfies WhatsAppRequest<CreateWhatsAppTemplateRequest>;
+
+    const createResult = await client.createTemplate(createRequest);
+    expect(createResult).toBeDefined();
+    expect(typeof createResult.id).toBe("string");
+
+    const deleteRequest = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: `delete_test_with_id${TEMPLATES_VERSION}`,
+        hsm_id: createResult.id,
+      },
+    } satisfies WhatsAppRequest<DeleteWhatsAppTemplateRequest>;
+
+    const result = await client.deleteTemplate(deleteRequest);
+
+    expect(result).toBeDefined();
+    expect(result.success).toBe(true);
+  }, 25000);
+
+  test("should list templates with multiple filters", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        category: "MARKETING",
+        status: "APPROVED",
+        language: "en",
+      },
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+
+    result.data.forEach((template) => {
+      expect(template.category).toBe("MARKETING");
+      expect(template.status).toBe("APPROVED");
+      expect(template.language).toBe("en");
+    });
+  }, 25000);
+
+  test("should handle empty template list", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {
+        name: "nonexistent_template_name_xyz",
+      },
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+    expect(result.data.length).toBe(0);
   }, 25000);
 });

@@ -19,14 +19,16 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
   async get(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse> {
     const cacheKey = this.generateCacheKey("GET", request);
-    const cachedResponse = this.readFromCache(cacheKey);
+    const cachedResponse = this.readFromCache(cacheKey, "GET", request.path);
 
     if (cachedResponse) {
       return cachedResponse;
     }
 
     const response = await super.get(request);
-    this.writeToCache(cacheKey, response);
+
+    this.writeToCache(cacheKey, response, request, "GET", request.path);
+
     return response;
   }
 
@@ -34,14 +36,31 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     request: WhatsAppHttpPayloadRequest,
   ): Promise<WhatsAppHttpResponse> {
     const cacheKey = this.generateCacheKey("POST", request);
-    const cachedResponse = this.readFromCache(cacheKey);
+    const cachedResponse = this.readFromCache(cacheKey, "POST", request.path);
 
     if (cachedResponse) {
       return cachedResponse;
     }
 
     const response = await super.post(request);
-    this.writeToCache(cacheKey, response);
+
+    this.writeToCache(cacheKey, response, request, "POST", request.path);
+
+    return response;
+  }
+
+  async delete(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse> {
+    const cacheKey = this.generateCacheKey("DELETE", request);
+    const cachedResponse = this.readFromCache(cacheKey, "DELETE", request.path);
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await super.delete(request);
+
+    this.writeToCache(cacheKey, response, request, "DELETE", request.path);
+
     return response;
   }
 
@@ -52,6 +71,7 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     const requestData = {
       method,
       path: request.path,
+      queryParams: request.queryParams,
       version: request.version,
       wabaId: request.wabaId,
       payload: "payload" in request ? request.payload : undefined,
@@ -65,8 +85,17 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     return hash;
   }
 
-  private getCacheFilePath(cacheKey: string): string {
-    return path.join(this.cacheDir, `${cacheKey}.json`);
+  private getCacheFilePath(
+    cacheKey: string,
+    method: string,
+    requestPath: string,
+  ): string {
+    const sanitizedPath = requestPath.replace(/[^a-zA-Z0-9]/g, "_");
+
+    return path.join(
+      this.cacheDir,
+      `${method}_${sanitizedPath}_${cacheKey}.json`,
+    );
   }
 
   private ensureCacheDirExists(): void {
@@ -75,8 +104,12 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     }
   }
 
-  private readFromCache(cacheKey: string): WhatsAppHttpResponse | null {
-    const filePath = this.getCacheFilePath(cacheKey);
+  private readFromCache(
+    cacheKey: string,
+    method: string,
+    requestPath: string,
+  ): WhatsAppHttpResponse | null {
+    const filePath = this.getCacheFilePath(cacheKey, method, requestPath);
 
     if (!fs.existsSync(filePath)) {
       return null;
@@ -85,9 +118,10 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     try {
       const content = fs.readFileSync(filePath, "utf-8");
       const cached = JSON.parse(content);
+
       return {
-        ok: cached.ok,
-        body: cached.body,
+        ok: cached.response.ok,
+        body: cached.response.body,
       };
     } catch (error) {
       console.warn(`Failed to read cache file ${filePath}:`, error);
@@ -95,13 +129,29 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     }
   }
 
-  private writeToCache(cacheKey: string, response: WhatsAppHttpResponse): void {
-    const filePath = this.getCacheFilePath(cacheKey);
+  private writeToCache(
+    cacheKey: string,
+    response: WhatsAppHttpResponse,
+    request: WhatsAppHttpRequest | WhatsAppHttpPayloadRequest,
+    method: string,
+    requestPath: string,
+  ): void {
+    const filePath = this.getCacheFilePath(cacheKey, method, requestPath);
 
     try {
       const cacheData = {
-        ok: response.ok,
-        body: response.body,
+        request: {
+          method,
+          path: request.path,
+          queryParams: request.queryParams,
+          version: request.version,
+          wabaId: request.wabaId,
+          payload: "payload" in request ? request.payload : undefined,
+        },
+        response: {
+          ok: response.ok,
+          body: response.body,
+        },
         cachedAt: new Date().toISOString(),
       };
 
@@ -127,7 +177,7 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     request: WhatsAppHttpRequest | WhatsAppHttpPayloadRequest,
   ): void {
     const cacheKey = this.generateCacheKey(method, request);
-    const filePath = this.getCacheFilePath(cacheKey);
+    const filePath = this.getCacheFilePath(cacheKey, method, request.path);
 
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);

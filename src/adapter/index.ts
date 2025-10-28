@@ -18,6 +18,7 @@ export type WhatsAppHttpResponse = {
 export interface WhatsAppHttpAdapter {
   get(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse>;
   post(request: WhatsAppHttpPayloadRequest): Promise<WhatsAppHttpResponse>;
+  delete(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse>;
 }
 
 export class FetchWhatsAppHttpAdapter implements WhatsAppHttpAdapter {
@@ -48,6 +49,23 @@ export class FetchWhatsAppHttpAdapter implements WhatsAppHttpAdapter {
       method: "POST",
       headers,
       body: JSON.stringify(request.payload),
+    });
+
+    const body = await response.text();
+
+    return {
+      ok: response.ok,
+      body,
+    };
+  }
+
+  async delete(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse> {
+    const url = this.buildUrl(request);
+    const headers = this.buildHeaders(request.accessToken);
+
+    const response = await fetch(url, {
+      method: "DELETE",
+      headers,
     });
 
     const body = await response.text();

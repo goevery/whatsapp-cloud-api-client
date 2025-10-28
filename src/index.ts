@@ -2,8 +2,10 @@ import type { WhatsAppHttpAdapter } from "./adapter";
 import {
   createWhatsAppTemplateResponseSchema,
   listWhatsAppTemplatesResponseSchema,
+  deleteWhatsAppTemplateResponseSchema,
   type CreateWhatsAppTemplateRequest,
   type ListWhatsAppTemplatesRequest,
+  type DeleteWhatsAppTemplateRequest,
 } from "./schemas/template";
 
 export type WhatsAppRequest<T> = {
@@ -55,5 +57,23 @@ export class WhatsAppClient {
     }
 
     return listWhatsAppTemplatesResponseSchema.parse(JSON.parse(body));
+  }
+
+  public async deleteTemplate(
+    request: WhatsAppRequest<DeleteWhatsAppTemplateRequest>,
+  ) {
+    const { ok, body } = await this.http.delete({
+      path: "/message_templates",
+      version: this.version,
+      wabaId: request.wabaId,
+      accessToken: request.accessToken,
+      queryParams: request.payload,
+    });
+
+    if (!ok) {
+      throw new Error(`Error deleting template: ${body}`);
+    }
+
+    return deleteWhatsAppTemplateResponseSchema.parse(JSON.parse(body));
   }
 }
