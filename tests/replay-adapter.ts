@@ -6,7 +6,10 @@ import { FetchWhatsAppHttpAdapter } from "../src/adapter";
 import type {
   WhatsAppHttpRequest,
   WhatsAppHttpPayloadRequest,
+  WhatsAppHttpFormRequest,
   WhatsAppHttpResponse,
+  WhatsAppHttpDownloadRequest,
+  WhatsAppHttpDownloadResponse,
 } from "../src/adapter";
 
 const cachedDataSchema = z.object({
@@ -66,6 +69,27 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     return response;
   }
 
+  async postForm(
+    request: WhatsAppHttpFormRequest,
+  ): Promise<WhatsAppHttpResponse> {
+    const cacheKey = this.generateCacheKey("POST_FORM", request);
+    const cachedResponse = this.readFromCache(
+      cacheKey,
+      "POST_FORM",
+      request.path,
+    );
+
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+
+    const response = await super.postForm(request);
+
+    this.writeToCache(cacheKey, response, request, "POST_FORM", request.path);
+
+    return response;
+  }
+
   async delete(request: WhatsAppHttpRequest): Promise<WhatsAppHttpResponse> {
     const cacheKey = this.generateCacheKey("DELETE", request);
     const cachedResponse = this.readFromCache(cacheKey, "DELETE", request.path);
@@ -81,9 +105,18 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
     return response;
   }
 
+  async download(
+    request: WhatsAppHttpDownloadRequest,
+  ): Promise<WhatsAppHttpDownloadResponse> {
+    return await super.download(request);
+  }
+
   private generateCacheKey(
     method: string,
-    request: WhatsAppHttpRequest | WhatsAppHttpPayloadRequest,
+    request:
+      | WhatsAppHttpRequest
+      | WhatsAppHttpPayloadRequest
+      | WhatsAppHttpFormRequest,
   ): string {
     const requestData = {
       method,
@@ -92,6 +125,10 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
       version: request.version,
       wabaId: request.wabaId,
       payload: "payload" in request ? request.payload : undefined,
+      formData:
+        "formData" in request
+          ? Object.fromEntries(request.formData.entries())
+          : undefined,
     };
 
     const hash = crypto
@@ -149,7 +186,10 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
   private writeToCache(
     cacheKey: string,
     response: WhatsAppHttpResponse,
-    request: WhatsAppHttpRequest | WhatsAppHttpPayloadRequest,
+    request:
+      | WhatsAppHttpRequest
+      | WhatsAppHttpPayloadRequest
+      | WhatsAppHttpFormRequest,
     method: string,
     requestPath: string,
   ): void {
@@ -164,6 +204,10 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
           version: request.version,
           wabaId: request.wabaId,
           payload: "payload" in request ? request.payload : undefined,
+          formData:
+            "formData" in request
+              ? Object.fromEntries(request.formData.entries())
+              : undefined,
         },
         response: {
           ok: response.ok,
@@ -191,7 +235,10 @@ export class ReplayWhatsAppHttpAdapter extends FetchWhatsAppHttpAdapter {
 
   clearCacheForRequest(
     method: string,
-    request: WhatsAppHttpRequest | WhatsAppHttpPayloadRequest,
+    request:
+      | WhatsAppHttpRequest
+      | WhatsAppHttpPayloadRequest
+      | WhatsAppHttpFormRequest,
   ): void {
     const cacheKey = this.generateCacheKey(method, request);
     const filePath = this.getCacheFilePath(cacheKey, method, request.path);

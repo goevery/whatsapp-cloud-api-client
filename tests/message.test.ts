@@ -1,6 +1,11 @@
 import { describe, expect, test } from "vitest";
+import * as fs from "fs";
+import * as path from "path";
 import { WhatsAppClient } from "../src/index";
-import type { WhatsAppMessageRequest } from "../src/index";
+import type {
+  WhatsAppMessageRequest,
+  WhatsAppMediaRequest,
+} from "../src/index";
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
 
@@ -63,16 +68,35 @@ describe("Message Tests", () => {
   test("should send an image message with media ID", async () => {
     const adapter = new ReplayWhatsAppHttpAdapter();
     const client = new WhatsAppClient(adapter);
+    const phoneNumberId = loadRequiredEnvVar("WHATSAPP_PHONE_NUMBER_ID");
+    const accessToken = loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN");
+
+    const imagePath = path.join(__dirname, "..", "assets", "circle1.png");
+    const imageBuffer = fs.readFileSync(imagePath);
+    const file = new Blob([imageBuffer], { type: "image/png" });
+
+    const uploadRequest = {
+      phoneNumberId,
+      accessToken,
+      file,
+      payload: {
+        messaging_product: "whatsapp",
+        type: "image/png",
+      },
+    } satisfies WhatsAppMediaRequest;
+
+    const uploadResult = await client.uploadMedia(uploadRequest);
+    const mediaId = uploadResult.id;
 
     const request = {
-      phoneNumberId: loadRequiredEnvVar("WHATSAPP_PHONE_NUMBER_ID"),
-      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      phoneNumberId,
+      accessToken,
       payload: {
         messaging_product: "whatsapp",
         to: loadRequiredEnvVar("WHATSAPP_TEST_RECIPIENT"),
         type: "image",
         image: {
-          id: loadRequiredEnvVar("WHATSAPP_TEST_IMAGE_MEDIA_ID"),
+          id: mediaId,
           caption: "This is a test image",
         },
       },
