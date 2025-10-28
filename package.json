@@ -21,9 +21,9 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/index.js",
-      "require": "./dist/index.cjs",
-      "types": "./dist/index.d.ts"
+      "require": "./dist/index.cjs"
     },
     "./package.json": "./package.json"
   },
@@ -36,8 +36,9 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.38.0",
-    "@types/node": "^24.9.1",
+    "@types/node": "^24.9.2",
     "bumpp": "^10.3.1",
+    "dotenv": "^17.2.3",
     "eslint": "^9.38.0",
     "globals": "^16.4.0",
     "jiti": "^2.6.1",

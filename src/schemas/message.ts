@@ -372,26 +372,32 @@ export const templateParameterSchema = z.union([
   z.object({
     type: z.literal("text"),
     text: z.string(),
+    parameter_name: z.string().optional(),
   }),
   z.object({
     type: z.literal("currency"),
     currency: templateCurrencySchema,
+    parameter_name: z.string().optional(),
   }),
   z.object({
     type: z.literal("date_time"),
     date_time: templateDateTimeSchema,
+    parameter_name: z.string().optional(),
   }),
   z.object({
     type: z.literal("image"),
     image: mediaObjectSchema,
+    parameter_name: z.string().optional(),
   }),
   z.object({
     type: z.literal("document"),
     document: mediaObjectSchema,
+    parameter_name: z.string().optional(),
   }),
   z.object({
     type: z.literal("video"),
     video: mediaObjectSchema,
+    parameter_name: z.string().optional(),
   }),
 ]);
 
@@ -415,11 +421,17 @@ export type TemplateButtonParameter = z.infer<
 export const templateComponentSchema = z.union([
   z.object({
     type: z.literal("header"),
-    parameters: z.array(templateParameterSchema),
+    parameters: z.union([
+      z.array(templateParameterSchema),
+      z.record(z.string(), z.string()),
+    ]),
   }),
   z.object({
     type: z.literal("body"),
-    parameters: z.array(templateParameterSchema),
+    parameters: z.union([
+      z.array(templateParameterSchema),
+      z.record(z.string(), z.string()),
+    ]),
   }),
   z.object({
     type: z.literal("button"),

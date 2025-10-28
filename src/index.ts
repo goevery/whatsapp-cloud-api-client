@@ -7,11 +7,23 @@ import {
   type ListWhatsAppTemplatesRequest,
   type DeleteWhatsAppTemplateRequest,
 } from "./schemas/template";
+import {
+  sendMessageRequestSchema,
+  sendMessageResponseSchema,
+  type SendMessageRequest,
+  type SendMessageResponse,
+} from "./schemas/message";
 
 export type WhatsAppTemplateRequest<T> = {
   wabaId: string;
   accessToken: string;
   payload: T;
+};
+
+export type WhatsAppMessageRequest = {
+  phoneNumberId: string;
+  accessToken: string;
+  payload: SendMessageRequest;
 };
 
 export class WhatsAppClient {
@@ -75,5 +87,25 @@ export class WhatsAppClient {
     }
 
     return deleteWhatsAppTemplateResponseSchema.parse(JSON.parse(body));
+  }
+
+  public async sendMessage(
+    request: WhatsAppMessageRequest,
+  ): Promise<SendMessageResponse> {
+    const validatedPayload = sendMessageRequestSchema.parse(request.payload);
+
+    const { ok, body } = await this.http.post({
+      path: "/messages",
+      version: this.version,
+      wabaId: request.phoneNumberId,
+      accessToken: request.accessToken,
+      payload: validatedPayload,
+    });
+
+    if (!ok) {
+      throw new Error(`Error sending message: ${body}`);
+    }
+
+    return sendMessageResponseSchema.parse(JSON.parse(body));
   }
 }
