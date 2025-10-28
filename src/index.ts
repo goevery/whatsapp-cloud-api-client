@@ -1,8 +1,9 @@
 import type { WhatsAppHttpAdapter } from "./adapter";
 import {
   createWhatsAppTemplateResponseSchema,
-  whatsAppTemplateSchema,
+  listWhatsAppTemplatesResponseSchema,
   type CreateWhatsAppTemplateRequest,
+  type ListWhatsAppTemplatesRequest,
 } from "./schemas/template";
 
 export type WhatsAppRequest<T> = {
@@ -36,5 +37,23 @@ export class WhatsAppClient {
     }
 
     return createWhatsAppTemplateResponseSchema.parse(JSON.parse(body));
+  }
+
+  public async listTemplates(
+    request: WhatsAppRequest<ListWhatsAppTemplatesRequest>,
+  ) {
+    const { ok, body } = await this.http.get({
+      path: "/message_templates",
+      version: this.version,
+      wabaId: request.wabaId,
+      accessToken: request.accessToken,
+      queryParams: request.payload,
+    });
+
+    if (!ok) {
+      throw new Error(`Error listing templates: ${body}`);
+    }
+
+    return listWhatsAppTemplatesResponseSchema.parse(JSON.parse(body));
   }
 }

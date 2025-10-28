@@ -1,6 +1,9 @@
 import { describe, expect, test } from "vitest";
 import { WhatsAppClient, WhatsAppRequest } from "../src/index";
-import { CreateWhatsAppTemplateRequest } from "../src/schemas/template";
+import {
+  CreateWhatsAppTemplateRequest,
+  ListWhatsAppTemplatesRequest,
+} from "../src/schemas/template";
 import { ReplayWhatsAppHttpAdapter } from "./replay-adapter";
 import { loadRequiredEnvVar } from "./environment";
 
@@ -100,5 +103,36 @@ describe("Template Tests", () => {
     expect(typeof result.id).toBe("string");
     expect(result.status).toBe("PENDING");
     expect(result.category).toBe("MARKETING");
+  }, 25000);
+
+  test("should list templates", async () => {
+    const adapter = new ReplayWhatsAppHttpAdapter();
+    const client = new WhatsAppClient(adapter);
+
+    const request = {
+      wabaId: "1606335326722023",
+      accessToken: loadRequiredEnvVar("WHATSAPP_ACCESS_TOKEN"),
+      payload: {},
+    } satisfies WhatsAppRequest<ListWhatsAppTemplatesRequest>;
+
+    const result = await client.listTemplates(request);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(Array.isArray(result.data)).toBe(true);
+
+    const template = result.data[0];
+    expect(template.id).toBeDefined();
+    expect(template.name).toBeDefined();
+    expect(template.language).toBeDefined();
+    expect(template.category).toBeDefined();
+    expect(template.components).toBeDefined();
+    expect(Array.isArray(template.components)).toBe(true);
+
+    if (result.paging) {
+      expect(result.paging.cursors).toBeDefined();
+      expect(result.paging.cursors.before).toBeDefined();
+      expect(result.paging.cursors.after).toBeDefined();
+    }
   }, 25000);
 });

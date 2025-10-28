@@ -46,6 +46,11 @@ export const whatsAppTemplateHeaderNoParamsComponentSchema = z.object({
   text: z.string(),
 });
 
+export const whatsAppTemplateHeaderLocationComponentSchema = z.object({
+  type: z.literal("HEADER"),
+  format: z.literal("LOCATION"),
+});
+
 export const whatsAppTemplateHeaderNamedParamsComponentSchema = z.object({
   type: z.literal("HEADER"),
   format: z.literal("TEXT"),
@@ -68,6 +73,7 @@ export const whatsAppTemplateHeaderComponentSchema = z.union([
   whatsAppTemplateHeaderNoParamsComponentSchema,
   whatsAppTemplateHeaderNamedParamsComponentSchema,
   whatsAppTemplateHeaderPositionalParamsComponentSchema,
+  whatsAppTemplateHeaderLocationComponentSchema,
 ]);
 
 export type WhatsAppTemplateHeaderComponent = z.infer<
@@ -149,6 +155,7 @@ export const whatsAppTemplateSchema = z.object({
   name: z.string(),
   language: z.string(),
   category: whatsAppTemplateCategorySchema,
+  status: whatsAppTemplateStatusSchema,
   parameter_format: whatsAppTemplateParameterFormatSchema.optional(),
   components: z.array(whatsAppTemplateComponentSchema),
 });
@@ -157,6 +164,7 @@ export type WhatsAppTemplate = z.infer<typeof whatsAppTemplateSchema>;
 
 export const createWhatsAppTemplateRequestSchema = whatsAppTemplateSchema.omit({
   id: true,
+  status: true,
 });
 
 export type CreateWhatsAppTemplateRequest = z.infer<
@@ -168,3 +176,44 @@ export const createWhatsAppTemplateResponseSchema = z.object({
   status: whatsAppTemplateStatusSchema,
   category: whatsAppTemplateCategorySchema,
 });
+
+export const whatsAppTemplateQualityScoreSchema = z.enum([
+  "GREEN",
+  "YELLOW",
+  "RED",
+  "UNKNOWN",
+]);
+
+export type WhatsAppTemplateQualityScore = z.infer<
+  typeof whatsAppTemplateQualityScoreSchema
+>;
+
+export const listWhatsAppTemplatesRequestSchema = z.object({
+  category: whatsAppTemplateCategorySchema.optional(),
+  content: z.string().optional(),
+  language: z.string().optional(),
+  name: z.string().optional(),
+  name_or_content: z.string().optional(),
+  quality_score: whatsAppTemplateQualityScoreSchema.optional(),
+  status: whatsAppTemplateStatusSchema.optional(),
+});
+
+export type ListWhatsAppTemplatesRequest = z.infer<
+  typeof listWhatsAppTemplatesRequestSchema
+>;
+
+export const listWhatsAppTemplatesResponseSchema = z.object({
+  data: z.array(whatsAppTemplateSchema),
+  paging: z
+    .object({
+      cursors: z.object({
+        before: z.string(),
+        after: z.string(),
+      }),
+    })
+    .optional(),
+});
+
+export type ListWhatsAppTemplatesResponse = z.infer<
+  typeof listWhatsAppTemplatesResponseSchema
+>;

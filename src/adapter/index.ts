@@ -1,5 +1,6 @@
 export type WhatsAppHttpRequest = {
   path: string;
+  queryParams?: Record<string, string>;
   version: string;
   wabaId: string;
   accessToken: string;
@@ -58,7 +59,15 @@ export class FetchWhatsAppHttpAdapter implements WhatsAppHttpAdapter {
   }
 
   private buildUrl(request: WhatsAppHttpRequest): string {
-    return `https://graph.facebook.com/${request.version}/${request.wabaId}${request.path}`;
+    const baseUrl = `https://graph.facebook.com/${request.version}/${request.wabaId}${request.path}`;
+
+    if (request.queryParams && Object.keys(request.queryParams).length > 0) {
+      const queryString = new URLSearchParams(request.queryParams).toString();
+
+      return `${baseUrl}?${queryString}`;
+    }
+
+    return baseUrl;
   }
 
   private buildHeaders(accessToken: string) {
