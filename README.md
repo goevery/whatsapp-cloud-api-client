@@ -215,7 +215,7 @@ import {
   sendMessageResponseSchema,
   type SendMessageRequest,
   type SendMessageResponse,
-} from "@goevery/whatsapp-cloud-api-client/schema";
+} from "@goevery/whatsapp-cloud-api-client/schemas";
 
 // Validate your own data
 const validatedMessage = sendMessageRequestSchema.parse(messageData);

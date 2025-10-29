@@ -26,10 +26,10 @@
       "import": "./dist/main.js",
       "require": "./dist/main.cjs"
     },
-    "./schema": {
-      "types": "./dist/schema.d.ts",
-      "import": "./dist/schema.js",
-      "require": "./dist/schema.cjs"
+    "./schemas": {
+      "types": "./dist/schemas.d.ts",
+      "import": "./dist/schemas.js",
+      "require": "./dist/schemas.cjs"
     },
     "./package.json": "./package.json"
   },
