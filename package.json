@@ -1,6 +1,6 @@
 {
   "name": "@goevery/whatsapp-cloud-api-client",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A TypeScript client for WhatsApp Cloud API",
   "type": "module",
   "license": "MIT",
